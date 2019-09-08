@@ -28,3 +28,10 @@ While programming (ahem, wiring) the ROM I chose the pattern ```F0.5A.4E.43```. 
 * Has the highest number of bit flips possible (0xF => 0x0, 0x5 => 0xA)
 * Contains my initials (NC) encoded in ASCII (0x4E, 0x43)
 
+The code drives the line two times around a full cycle in both directions. This is possible without an H-Bridge by tying both sides of the line to a digital output pin and then dirving the ends alternatively to 0 and 1. As noted above this shorts them and relies on the internal current limitation abilities of the microcontroller, not somthing I would do in a production design. 
+
+I was able to read, most of the times, the bits correctly in all their permuations with a single pulse on the drive line but encountered the odd reading error here and there. A double pulse drives the voltage on the peak detector higher and provided very robust.
+
+I originally had a reistor in parallel to the peak detector capacitor to allow it to discharge. However this imposes time constraints on the reading time. I eventually did away with the resistors completely and just turned the sense pins to outputs and driven them low for few milliseconds to discharge the capacitor before starting to pulse the drive line. This allowed to read the memory at considerably higer speeds and got rid of any read error.
+
+
