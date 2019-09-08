@@ -8,3 +8,23 @@ I started to experiment with a toroid core I had in my parts bin and, after a bi
 
 The concept in depicted in the diagram above). When Drive0 is excited with a pulse a few volts pulse is generated in the sense coil. The peak detector formed by the diode and the capacitor gives the microcontroller time to read the pulse after it's done driving the circuit. In this case, because Drive0 passes inside the core, the bit is detected as a "1". The second drive line in the example instead doesn't pass the core and so will not generate a pulse on the sense coil when it's excited, in this case the bit will be read as a "0".
 
+The drive line can pass or skip several such cores allowing to read multiple bits in parallel. 
+
+## The board ##
+
+I made up a wire wrapped version with just 8 nibbles (4 bits words). This was more due to the lack of real-estate as well as of cores than because I thought 8 nibbles is a particularly usefuly ROM size. I tried to keep the wiring (reasonably) neatly arranged. You can see the final result below.
+
+![board](docs/board.png)
+
+## Breathe! ##
+
+What to do with 8 nibbles though? At first I thought to write some sort of ALU that would execute nibble sized instructions but, while it seemed a cool idea, it departed too much from the focus which was the actual ROM. Also I wanted something that I could just keep running there and would actually do something visible without the need to connect to the serial monitor. That's when I recalled reading a very interesting article by Sean Voisen on how to implement a breathing light (https://sean.voisen.org/blog/2011/10/breathing-led-with-arduino/), a concept that I never had a chance to use in one of my projects.
+
+So, with a bit of fantasy, I imagined my core memory to contain vital data to keep a breathing LED alive. As long as the data coming back from the memory is uncorrupted the LED keeps breathing but as soon as a reading error occurs the LED will turn solid RED and stop there forever.
+
+While programming (ahem, wiring) the ROM I chose the pattern ```F0.5A.4E.43```. This is a good test pattern for the following reasons:
+
+* Exercises all bits in both the on (0xF) and off (0x0) positions
+* Has the highest number of bit flips possible (0xF => 0x0, 0x5 => 0xA)
+* Contains my initials (NC) encoded in ASCII (0x4E, 0x43)
+
