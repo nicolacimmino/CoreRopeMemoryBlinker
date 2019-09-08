@@ -34,4 +34,7 @@ I was able to read, most of the times, the bits correctly in all their permuatio
 
 I originally had a reistor in parallel to the peak detector capacitor to allow it to discharge. However this imposes time constraints on the reading time. I eventually did away with the resistors completely and just turned the sense pins to outputs and driven them low for few milliseconds to discharge the capacitor before starting to pulse the drive line. This allowed to read the memory at considerably higer speeds and got rid of any read error.
 
+This video shows the light breathing away and, given I haven't had reading errors in hours of tests, me shorting two drive pins to simulate an error, after all shorts on those pins are the rule, so why not. 
+
+[![video](docs/video.png)](https://www.youtube.com/watch?v=8H_4KBkwSY4)
 
