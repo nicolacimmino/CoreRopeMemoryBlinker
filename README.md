@@ -39,3 +39,8 @@ The video shows the light breathing away and, given I haven't had reading errors
 
 [![video](docs/video.png)](https://www.youtube.com/watch?v=8H_4KBkwSY4)
 
+## Notes ##
+
+I haven't produced a full schematic, however the code should make it self explanatory where things are connected. The output of the 4 peak detectors go to pins A1-A3 while the driving lines are all wired from D7 on one side to pins D2, D4, D5, D6, D8, D9, D10, D11. Pardon the odd arrangement, I needed D3 for the LED as D2 can't PWM on the Nano and I was too lazy to shuffle all the other wiring around.
+
+I had an odd issue when attempting to excite a drive line using D12 and couldn't get consistent results. I didn't dig further into this but I suspect the hardware driving this pin might be different and have a different current limitation so, perhaps, this is really the only possible arrangement for 8 drive lines if a PWM pin is desired for the LED.
