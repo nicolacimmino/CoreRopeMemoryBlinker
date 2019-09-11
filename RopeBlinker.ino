@@ -18,18 +18,25 @@
 #define GREEN_LED_PIN 3
 #define RED_LED_PIN 12
 #define DRIVE_COMMON_PIN 7
+
+#define MEM_CONFIG 10
+#define MEM_STATUS 11
+
 #include "cli.h"
+#include <EEPROM.h>
 
 uint8_t drivePins[] = {2, 4, 5, 6, 8, 9, 10, 11};
 uint8_t sensePins[] = {A0, A1, A2, A3};
 Cli *cli;
 
-uint8_t readNibble(uint8_t address)
+void printHexByte(uint8_t value)
 {
-    if(address >= sizeof(drivePins)/sizeof(drivePins[0])) {
-        return 0xF;
-    }
+    Serial.print("0123456789ABCDEF"[value >> 4]);
+    Serial.print("0123456789ABCDEF"[value & 15]);
+}
 
+uint8_t readRopeMemNibble(uint8_t address)
+{
     uint8_t A = drivePins[address];
     uint8_t B = DRIVE_COMMON_PIN;
     uint8_t values[] = {0, 0, 0, 0};
@@ -78,25 +85,53 @@ uint8_t readNibble(uint8_t address)
     return result;
 }
 
-void dumpMemory(uint8_t from, uint8_t to)
+bool isCoreRopeOn()
 {
-    Serial.print(from, HEX);
-    Serial.print(" - ");
+    return (EEPROM.read(MEM_CONFIG) & 0x80) == 0;
+}
 
-    for (uint8_t ix = from; ix <= to; ix++)
+uint8_t readMemory(uint8_t address)
+{
+    if (isCoreRopeOn() && address < 4)
     {
-        Serial.print(readNibble(2*ix), HEX);
-        Serial.print(readNibble(2*ix+1), HEX);
-        Serial.print(".");
+        return readRopeMemNibble(2 * address) << 4 | readRopeMemNibble(1 + (2 * address));
+    }
+
+    return EEPROM.read(address);
+}
+
+void writeMemory(uint8_t address, uint8_t data)
+{
+    EEPROM.write(address, data);
+}
+
+void dumpMemoryCommand(uint8_t from, uint8_t to)
+{    
+    for (uint16_t address = from; address <= to; address++)
+    {
+         if ((address % 16) == 0)
+        {            
+            printHexByte(address+1);
+            Serial.print(" - ");
+            continue;
+        }
+
+        printHexByte(readMemory(address));
+       
+        Serial.print(((address % 16) == 15) ? "\n" : ".");
     }
     Serial.println("");
 }
 
-void readMemory(uint8_t address)
+void readMemoryCommand(uint8_t address)
 {
-    Serial.print(readNibble(2*address), HEX);
-    Serial.print(readNibble(2*address+1), HEX);    
+    printHexByte(readMemory(address));
     Serial.println("");
+}
+
+void writeMemoryCommand(uint8_t address, uint8_t data)
+{
+    writeMemory(address, data);
 }
 
 void onCommand(uint8_t argc, char **argv)
@@ -109,21 +144,21 @@ void onCommand(uint8_t argc, char **argv)
 
     if (strcmp(argv[0], "dump") == 0 || strcmp(argv[0], "d") == 0)
     {
-        dumpMemory(atoi(argv[1]),atoi(argv[2]));
+        dumpMemoryCommand(atoi(argv[1]), atoi(argv[2]));
         return;
     }
 
     if (strcmp(argv[0], "read") == 0 || strcmp(argv[0], "r") == 0)
     {
-        readMemory(atoi(argv[1]));
+        readMemoryCommand(atoi(argv[1]));
         return;
     }
-    // Serial.println(argc);
-    // for (uint8_t ix = 0; ix < argc; ix++)
-    // {
-    //     Serial.print(argv[ix]);
-    //     Serial.println("!");
-    // }
+
+    if (strcmp(argv[0], "write") == 0 || strcmp(argv[0], "w") == 0)
+    {
+        writeMemoryCommand(atoi(argv[1]), atoi(argv[2]));
+        return;
+    }
 }
 
 void setup()
@@ -139,18 +174,17 @@ void setup()
     analogReference(INTERNAL);
 }
 
-
 void loop()
 {
     cli->loop();
 
     uint32_t value32 = 0;
 
-    for (int address = 0; address < 8; address++)
+    for (int address = 0; address < 4; address++)
     {
-        uint8_t nibble = readNibble(address);
+        uint8_t value = readMemory(address);
 
-        value32 = (value32 << 4) | nibble;
+        value32 = (value32 << 8) | value;
 
         // Keep breathing! See Sean Voisen great post from which I grabbed the formula.
         // https://sean.voisen.org/blog/2011/10/breathing-led-with-arduino/
@@ -163,8 +197,13 @@ void loop()
     {
         digitalWrite(GREEN_LED_PIN, LOW);
         digitalWrite(RED_LED_PIN, HIGH);
-        while (true)
+        EEPROM.write(MEM_STATUS, EEPROM.read(MEM_STATUS) | 1);
+
+        while (EEPROM.read(MEM_STATUS) & 1 != 0)
         {
+            cli->loop();
         }
+
+        digitalWrite(RED_LED_PIN, LOW);
     }
 }
