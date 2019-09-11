@@ -6,7 +6,7 @@ I started to experiment with a toroid core I had in my parts bin and, after a bi
 
 ![bit](docs/bit.png)
 
-The concept in depicted in the diagram above). When Drive0 is excited with a pulse a few volts pulse is generated in the sense coil. The peak detector formed by the diode and the capacitor gives the microcontroller time to read the pulse after it's done driving the circuit. In this case, because Drive0 passes inside the core, the bit is detected as a "1". The second drive line in the example instead doesn't pass the core and so will not generate a pulse on the sense coil when it's excited, in this case the bit will be read as a "0".
+The concept is depicted in the diagram above. When Drive0 is excited with a pulse a few volts pulse is generated in the sense coil. The peak detector formed by the diode and the capacitor gives the microcontroller time to read the pulse after it's done driving the circuit. In this case, because Drive0 passes inside the core, the bit is detected as a "1". The second drive line in the example instead doesn't pass the core and so will not generate a pulse on the sense coil when it's excited, in this case the bit will be read as a "0".
 
 The drive line can pass or skip several such cores allowing to read multiple bits in parallel. 
 
@@ -20,18 +20,27 @@ I made up a wire wrapped version with just 8 nibbles (4 bits words). This was mo
 
 What to do with 8 nibbles though? At first I thought to write some sort of ALU that would execute nibble sized instructions but, while it seemed a cool idea, it departed too much from the focus which was the actual ROM. Also I wanted something that I could just keep running there and would actually do something visible without the need to connect to the serial monitor. That's when I recalled reading a very interesting article by Sean Voisen on how to implement a breathing light (https://sean.voisen.org/blog/2011/10/breathing-led-with-arduino/), a concept that I never had a chance to use in one of my projects.
 
-So, with a bit of fantasy, I imagined my core memory to contain vital data to keep a breathing LED alive. As long as the data coming back from the memory is uncorrupted the LED keeps breathing but as soon as a reading error occurs the LED will turn solid RED and stop there forever.
+So, with a bit of fantasy, I imagined my core memory to contain vital data to keep a breathing LED alive. As long as the data coming back from the memory is uncorrupted the LED keeps breathing but as soon as a reading error occurs the LED will turn solid red and stop there forever.
 
 While programming (ahem, wiring) the ROM I chose the pattern ```F0.5A.4E.43```. This is a good test pattern for the following reasons:
 
 * Exercises all bits in both the on (0xF) and off (0x0) positions
-* Has the highest number of bit flips possible (0xF => 0x0, 0x5 => 0xA)
+* Has the highest number of bit flips possible btween a nibble and the following (0xF => 0x0)
+* Has the highest number of alternating bit flips possible (0x5 => 0xA)
 * Contains my initials (NC) encoded in ASCII (0x4E, 0x43)
 
-The code drives the line two times around a full cycle in both directions. This is possible without an H-Bridge by tying both sides of the line to a digital output pin and then dirving the ends alternatively to 0 and 1. As noted above this shorts them and relies on the internal current limitation abilities of the microcontroller, not somthing I would do in a production design. 
+The code drives the line two times around a full cycle in both directions. This is possible without a H-Bridge by tying both sides of the line to a digital output pin and then dirving the ends alternatively to 0 and 1. As noted above this shorts them and relies on the internal current limitation abilities of the microcontroller, not something I would do in a production design. 
 
-I was able to read, most of the times, the bits correctly in all their permuations with a single pulse on the drive line but encountered the odd reading error here and there. A double pulse drives the voltage on the peak detector higher and provided very robust.
+I was able to read, most of the times, the bits correctly in all their permuations with a single pulse on the drive line but encountered the odd reading error here and there. A double pulse drives the voltage on the peak detector higher and proves to be very robust.
 
-I originally had a reistor in parallel to the peak detector capacitor to allow it to discharge. However this imposes time constraints on the reading time. I eventually did away with the resistors completely and just turned the sense pins to outputs and driven them low for few milliseconds to discharge the capacitor before starting to pulse the drive line. This allowed to read the memory at considerably higer speeds and got rid of any read error.
+I originally had a reistor (still visible on the board image) in parallel to the peak detector capacitor to allow it to discharge. However this imposes time constraints on the reading time of consecutive nibbles. I eventually did away with the resistors completely and just turned the sense pins to outputs and driven them low for few milliseconds to discharge the capacitors before starting to pulse the drive line. This allows to read the memory at higer speeds and gets rid of any read error.
 
+The video shows the light breathing away and, given I haven't had reading errors in hours of tests, me shorting two drive pins to simulate an error, after all shorts on those pins are the rule, so why not. 
 
+[![video](docs/video.png)](https://www.youtube.com/watch?v=8H_4KBkwSY4)
+
+## Notes ##
+
+I haven't produced a full schematic, however the code should make it self explanatory where things are connected. The sense coils are 10 windings which seems to work fine at least for the ferrite type I'm using. The outputs of the 4 peak detectors go to pins A1-A3 while the driving lines are all wired from D7 on one side to pins D2, D4, D5, D6, D8, D9, D10, D11. Pardon the odd arrangement, I needed D3 for the LED as D2 can't PWM on the Nano and I was too lazy to shuffle all the other wiring around.
+
+I had an odd issue when attempting to excite a drive line using D12 and couldn't get consistent results. I didn't dig further into this but I suspect the hardware driving this pin might be different and have a different current limitation so, perhaps, this is really the only possible arrangement with 8 drive lines if a PWM pin is desired for the LED.
