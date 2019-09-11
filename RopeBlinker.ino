@@ -18,22 +18,18 @@
 #define GREEN_LED_PIN 3
 #define RED_LED_PIN 12
 #define DRIVE_COMMON_PIN 7
+#include "cli.h"
 
 uint8_t drivePins[] = {2, 4, 5, 6, 8, 9, 10, 11};
 uint8_t sensePins[] = {A0, A1, A2, A3};
-
-void setup()
-{
-    pinMode(RED_LED_PIN, OUTPUT);
-    pinMode(RED_LED_PIN, OUTPUT);
-
-    Serial.begin(115200);
-    analogReference(INTERNAL);
-}
-
+Cli *cli;
 
 uint8_t readNibble(uint8_t address)
 {
+    if(address >= sizeof(drivePins)/sizeof(drivePins[0])) {
+        return 0xF;
+    }
+
     uint8_t A = drivePins[address];
     uint8_t B = DRIVE_COMMON_PIN;
     uint8_t values[] = {0, 0, 0, 0};
@@ -50,8 +46,8 @@ uint8_t readNibble(uint8_t address)
     pinMode(A, OUTPUT);
     pinMode(B, OUTPUT);
 
-    // Give a couple of whacks to the drive line so we induce 
-    // current in the sense coils of the set bits. 
+    // Give a couple of whacks to the drive line so we induce
+    // current in the sense coils of the set bits.
     // Here we energize the drive line in both polarizations
     // alternatively. This showed to give the best results
     // regardless of orientation of the sense coils versus
@@ -82,36 +78,91 @@ uint8_t readNibble(uint8_t address)
     return result;
 }
 
+void dumpMemory(uint8_t from, uint8_t to)
+{
+    Serial.print(from, HEX);
+    Serial.print(" - ");
+
+    for (uint8_t ix = from; ix <= to; ix++)
+    {
+        Serial.print(readNibble(2*ix), HEX);
+        Serial.print(readNibble(2*ix+1), HEX);
+        Serial.print(".");
+    }
+    Serial.println("");
+}
+
+void readMemory(uint8_t address)
+{
+    Serial.print(readNibble(2*address), HEX);
+    Serial.print(readNibble(2*address+1), HEX);    
+    Serial.println("");
+}
+
+void onCommand(uint8_t argc, char **argv)
+{
+    if (strcmp(argv[0], "exit") == 0)
+    {
+        Serial.println("bye");
+        return;
+    }
+
+    if (strcmp(argv[0], "dump") == 0 || strcmp(argv[0], "d") == 0)
+    {
+        dumpMemory(atoi(argv[1]),atoi(argv[2]));
+        return;
+    }
+
+    if (strcmp(argv[0], "read") == 0 || strcmp(argv[0], "r") == 0)
+    {
+        readMemory(atoi(argv[1]));
+        return;
+    }
+    // Serial.println(argc);
+    // for (uint8_t ix = 0; ix < argc; ix++)
+    // {
+    //     Serial.print(argv[ix]);
+    //     Serial.println("!");
+    // }
+}
+
+void setup()
+{
+    pinMode(RED_LED_PIN, OUTPUT);
+    pinMode(RED_LED_PIN, OUTPUT);
+
+    Serial.begin(115200);
+
+    cli = new Cli();
+    cli->begin(&Serial, onCommand);
+
+    analogReference(INTERNAL);
+}
+
+
 void loop()
 {
+    cli->loop();
+
     uint32_t value32 = 0;
 
     for (int address = 0; address < 8; address++)
     {
-        if (address > 0 && address % 2 == 0)
-        {
-            Serial.print(".");
-        }
-
         uint8_t nibble = readNibble(address);
 
         value32 = (value32 << 4) | nibble;
 
-        Serial.print(nibble, HEX);
-
         // Keep breathing! See Sean Voisen great post from which I grabbed the formula.
         // https://sean.voisen.org/blog/2011/10/breathing-led-with-arduino/
         float val = (exp(sin(millis() / 2000.0 * PI)) - 0.36787944) * 108.0;
+
         analogWrite(GREEN_LED_PIN, val);
     }
-
-    Serial.println("");
 
     if (value32 != 0xF05A4E43)
     {
         digitalWrite(GREEN_LED_PIN, LOW);
         digitalWrite(RED_LED_PIN, HIGH);
-        Serial.println("Memory read error! I'm dead.");
         while (true)
         {
         }
