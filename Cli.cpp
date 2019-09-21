@@ -19,9 +19,8 @@ void Cli::initParser()
 
 void Cli::loop()
 {
-
     while (this->stream->available())
-    {
+    {         
         this->inputBuffer[this->inputBufferIndex] = (char)this->stream->read();
         this->stream->print(this->inputBuffer[this->inputBufferIndex]);
 

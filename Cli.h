@@ -5,15 +5,17 @@
 #define CLI_MAX_ARGLEN 16
 #define CLI_INPUT_BUFFER_SIZE 1+(CLI_MAX_ARGC*CLI_MAX_ARGLEN)
 
+#include "Arduino.h"
+
 class Cli
 {
 public:
     void begin(Stream *stream, void (*onCommand)(uint8_t, char**));
     void loop();
     void printHexByte(uint8_t value);
-    
-private:
     Stream *stream;
+    
+private:    
     void (*onCommand)(uint8_t argc, char **argv);
     void parseCommand(String command);
     char *argv[CLI_MAX_ARGC];

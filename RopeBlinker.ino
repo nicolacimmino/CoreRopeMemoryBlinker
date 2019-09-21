@@ -18,90 +18,17 @@
 #define GREEN_LED_PIN 3
 #define RED_LED_PIN 12
 
-#define MEM_CONFIG 10
-#define MEM_STATUS 11
-
-#include <EEPROM.h>
 #include "Cli.h"
-#include "RopeMemory.h"
+#include "MemoryController.h"
+#include "CommandsProcessor.h"
 
-Cli *cli;
-RopeMemory ropeMemory;
-
-bool isCoreRopeOn()
-{
-    return (EEPROM.read(MEM_CONFIG) & 0x80) == 0;
-}
-
-uint8_t readMemory(uint8_t address)
-{
-    if (isCoreRopeOn() && address < 4)
-    {
-        return ropeMemory.readNibble(2 * address) << 4 | ropeMemory.readNibble(1 + (2 * address));
-    }
-
-    return EEPROM.read(address);
-}
-
-void writeMemory(uint8_t address, uint8_t data)
-{
-    EEPROM.write(address, data);
-}
-
-void dumpMemoryCommand(uint8_t from, uint8_t to)
-{
-    for (uint16_t address = from; address <= to; address++)
-    {
-        if ((address % 16) == 0)
-        {
-            cli->printHexByte(address + 1);
-            Serial.print(" - ");
-            continue;
-        }
-
-        cli->printHexByte(readMemory(address));
-
-        Serial.print(((address % 16) == 15) ? "\n" : ".");
-    }
-    Serial.println("");
-}
-
-void readMemoryCommand(uint8_t address)
-{
-    cli->printHexByte(readMemory(address));
-    Serial.println("");
-}
-
-void writeMemoryCommand(uint8_t address, uint8_t data)
-{
-    writeMemory(address, data);
-}
+Cli cli;
+MemoryController memoryController;
+CommandsProcessor commandProcessor;
 
 void onCommand(uint8_t argc, char **argv)
-{
-    if (strcmp(argv[0], "exit") == 0)
-    {
-        Serial.println("bye");
-        return;
-    }
-
-    if (strcmp(argv[0], "dump") == 0 || strcmp(argv[0], "d") == 0)
-    {
-        dumpMemoryCommand(atoi(argv[1]), atoi(argv[2]));
-        return;
-    }
-
-    if (strcmp(argv[0], "read") == 0 || strcmp(argv[0], "r") == 0)
-    {
-        readMemoryCommand(atoi(argv[1]));
-        return;
-    }
-
-    if (strcmp(argv[0], "write") == 0 || strcmp(argv[0], "w") == 0)
-    {
-        writeMemoryCommand(atoi(argv[1]), atoi(argv[2]));
-        return;
-    }
+{    
+    commandProcessor.onCommand(argc, argv);
 }
 
 void setup()
@@ -111,21 +38,21 @@ void setup()
 
     Serial.begin(115200);
 
-    cli = new Cli();
-    cli->begin(&Serial, onCommand);
+    cli.begin(&Serial, onCommand);
+    commandProcessor.begin(&cli, &memoryController);
 
     analogReference(INTERNAL);
 }
 
 void loop()
 {
-    cli->loop();
+    cli.loop();
 
     uint32_t value32 = 0;
 
     for (int address = 0; address < 4; address++)
     {
-        uint8_t value = readMemory(address);
+        uint8_t value = memoryController.readMemory(address);
 
         value32 = (value32 << 8) | value;
 
@@ -144,7 +71,7 @@ void loop()
 
         while (EEPROM.read(MEM_STATUS) & 1 != 0)
         {
-            cli->loop();
+            cli.loop();
         }
 
         digitalWrite(RED_LED_PIN, LOW);
