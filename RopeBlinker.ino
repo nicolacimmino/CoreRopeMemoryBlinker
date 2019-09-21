@@ -21,13 +21,15 @@
 #include "Cli.h"
 #include "MemoryController.h"
 #include "CommandsProcessor.h"
+#include "LEDController.h"
 
 Cli cli;
 MemoryController memoryController;
 CommandsProcessor commandProcessor;
+LEDController ledController;
 
 void onCommand(uint8_t argc, char **argv)
-{    
+{
     commandProcessor.onCommand(argc, argv);
     cli.stream->print(">");
 }
@@ -42,39 +44,33 @@ void setup()
     cli.begin(&Serial, onCommand);
     commandProcessor.begin(&cli, &memoryController);
 
+    ledController.begin(RED_LED_PIN, GREEN_LED_PIN);
+
     analogReference(INTERNAL);
 }
 
 void loop()
 {
     cli.loop();
+    ledController.loop();
+
+    if (memoryController.read(MEM_STATUS) & 1 != 0)
+    {
+        return;
+    }
+
+    ledController.breathe();
 
     uint32_t value32 = 0;
-
     for (int address = 0; address < 4; address++)
     {
         uint8_t value = memoryController.read(address);
-
         value32 = (value32 << 8) | value;
-
-        // Keep breathing! See Sean Voisen great post from which I grabbed the formula.
-        // https://sean.voisen.org/blog/2011/10/breathing-led-with-arduino/
-        float val = (exp(sin(millis() / 2000.0 * PI)) - 0.36787944) * 108.0;
-
-        analogWrite(GREEN_LED_PIN, val);
     }
 
     if (value32 != 0xF05A4E43)
     {
-        digitalWrite(GREEN_LED_PIN, LOW);
-        digitalWrite(RED_LED_PIN, HIGH);
+        ledController.showSolidRed();
         memoryController.write(MEM_STATUS, memoryController.read(MEM_STATUS) | 1);
-
-        while (memoryController.read(MEM_STATUS) & 1 != 0)
-        {
-            cli.loop();
-        }
-
-        digitalWrite(RED_LED_PIN, LOW);
     }
 }
