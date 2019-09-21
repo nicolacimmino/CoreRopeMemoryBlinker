@@ -53,3 +53,9 @@ void Cli::loop()
         this->initParser();
     }
 }
+
+void Cli::printHexByte(uint8_t value)
+{
+    this->stream->print("0123456789ABCDEF"[value >> 4]);
+    this->stream->print("0123456789ABCDEF"[value & 15]);
+}

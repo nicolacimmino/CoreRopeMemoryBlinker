@@ -17,73 +17,16 @@
 
 #define GREEN_LED_PIN 3
 #define RED_LED_PIN 12
-#define DRIVE_COMMON_PIN 7
 
 #define MEM_CONFIG 10
 #define MEM_STATUS 11
 
-#include "cli.h"
 #include <EEPROM.h>
+#include "Cli.h"
+#include "RopeMemory.h"
 
-uint8_t drivePins[] = {2, 4, 5, 6, 8, 9, 10, 11};
-uint8_t sensePins[] = {A0, A1, A2, A3};
 Cli *cli;
-
-void printHexByte(uint8_t value)
-{
-    Serial.print("0123456789ABCDEF"[value >> 4]);
-    Serial.print("0123456789ABCDEF"[value & 15]);
-}
-
-uint8_t readRopeMemNibble(uint8_t address)
-{
-    uint8_t A = drivePins[address];
-    uint8_t B = DRIVE_COMMON_PIN;
-    uint8_t values[] = {0, 0, 0, 0};
-
-    // Discharge the sense capacitors.
-    for (uint8_t ix = 0; ix < 4; ix++)
-    {
-        pinMode(sensePins[ix], OUTPUT);
-        digitalWrite(sensePins[ix], LOW);
-        delay(1);
-        pinMode(sensePins[ix], INPUT);
-    }
-
-    pinMode(A, OUTPUT);
-    pinMode(B, OUTPUT);
-
-    // Give a couple of whacks to the drive line so we induce
-    // current in the sense coils of the set bits.
-    // Here we energize the drive line in both polarizations
-    // alternatively. This showed to give the best results
-    // regardless of orientation of the sense coils versus
-    // the drive lines.
-    for (uint8_t phase = 0; phase < 4; phase++)
-    {
-        digitalWrite(A, phase % 2);
-        digitalWrite(B, (phase + 1) % 2);
-        for (uint8_t ix = 0; ix < 4; ix++)
-        {
-            values[ix] += analogRead(sensePins[ix]);
-        }
-    }
-
-    digitalWrite(A, LOW);
-    digitalWrite(B, LOW);
-
-    pinMode(A, INPUT);
-    pinMode(B, INPUT);
-
-    // We consider a bit set if we got anything on the sense line.
-    uint8_t result = 0;
-    for (uint8_t ix = 0; ix < 4; ix++)
-    {
-        result = (result << 1) | ((values[ix] > 1) ? 1 : 0);
-    }
-
-    return result;
-}
+RopeMemory ropeMemory;
 
 bool isCoreRopeOn()
 {
@@ -94,7 +37,7 @@ uint8_t readMemory(uint8_t address)
 {
     if (isCoreRopeOn() && address < 4)
     {
-        return readRopeMemNibble(2 * address) << 4 | readRopeMemNibble(1 + (2 * address));
+        return ropeMemory.readNibble(2 * address) << 4 | ropeMemory.readNibble(1 + (2 * address));
     }
 
     return EEPROM.read(address);
@@ -106,18 +49,18 @@ void writeMemory(uint8_t address, uint8_t data)
 }
 
 void dumpMemoryCommand(uint8_t from, uint8_t to)
-{    
+{
     for (uint16_t address = from; address <= to; address++)
     {
-         if ((address % 16) == 0)
-        {            
-            printHexByte(address+1);
+        if ((address % 16) == 0)
+        {
+            cli->printHexByte(address + 1);
             Serial.print(" - ");
             continue;
         }
 
-        printHexByte(readMemory(address));
-       
+        cli->printHexByte(readMemory(address));
+
         Serial.print(((address % 16) == 15) ? "\n" : ".");
     }
     Serial.println("");
@@ -125,7 +68,7 @@ void dumpMemoryCommand(uint8_t from, uint8_t to)
 
 void readMemoryCommand(uint8_t address)
 {
-    printHexByte(readMemory(address));
+    cli->printHexByte(readMemory(address));
     Serial.println("");
 }
 
