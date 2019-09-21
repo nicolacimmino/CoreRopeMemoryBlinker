@@ -44,7 +44,7 @@ void setup()
 
     Serial.begin(115200);
 
-    ropeMemory.begin(DRIVE_COMMON_PIN, drivePins, sensePins);
+    ropeMemory.begin(PIN_COMMON_DRIVE, drivePins, sensePins);
     memoryController.begin(&ropeMemory);
 
     cli.begin(&Serial, onCommand);
@@ -60,8 +60,9 @@ void loop()
     cli.loop();
     ledController.loop();
 
-    if (memoryController.read(MEM_STATUS) & 1 != 0)
+    if (!memoryController.isRopeMemoryOK())
     {
+        ledController.showSolidRed();
         return;
     }
 
@@ -75,8 +76,7 @@ void loop()
     }
 
     if (value32 != 0xF05A4E43)
-    {
-        ledController.showSolidRed();
-        memoryController.write(MEM_STATUS, memoryController.read(MEM_STATUS) | 1);
+    {        
+        memoryController.setRopeMemoryNOK();        
     }
 }

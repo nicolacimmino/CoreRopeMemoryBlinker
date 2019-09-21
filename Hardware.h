@@ -3,6 +3,7 @@
 
 #define PIN_GREEN_LED 3
 #define PIN_RED_LED 12
+#define PIN_COMMON_DRIVE 7
 #define PIN_DRIVE_0 2
 #define PIN_DRIVE_1 4
 #define PIN_DRIVE_2 5

@@ -24,3 +24,13 @@ void MemoryController::write(uint8_t address, uint8_t data)
 {
     EEPROM.write(address, data);
 }
+
+bool MemoryController::isRopeMemoryOK()
+{
+    return (this->read(MEM_STATUS) & 1) == 0;
+}
+
+void MemoryController::setRopeMemoryNOK()
+{
+    EEPROM.write(MEM_STATUS, EEPROM.read(MEM_STATUS) | 1);    
+}

@@ -14,7 +14,7 @@ uint8_t RopeMemory::readNibble(uint8_t address)
     this->dischargeSenseCapacitors();
 
     pinMode(this->drivePins[address], OUTPUT);
-    pinMode(DRIVE_COMMON_PIN, OUTPUT);
+    pinMode(this->driveCommonPin, OUTPUT);
 
     // Give a couple of whacks to the drive line so we induce
     // current in the sense coils of the set bits.
@@ -25,7 +25,7 @@ uint8_t RopeMemory::readNibble(uint8_t address)
     for (uint8_t phase = 0; phase < 4; phase++)
     {
         digitalWrite(this->drivePins[address], phase % 2);
-        digitalWrite(DRIVE_COMMON_PIN, (phase + 1) % 2);
+        digitalWrite(this->driveCommonPin, (phase + 1) % 2);
         for (uint8_t ix = 0; ix < 4; ix++)
         {
             values[ix] += analogRead(this->sensePins[ix]);
@@ -33,10 +33,10 @@ uint8_t RopeMemory::readNibble(uint8_t address)
     }
 
     digitalWrite(this->drivePins[address], LOW);
-    digitalWrite(DRIVE_COMMON_PIN, LOW);
+    digitalWrite(this->driveCommonPin, LOW);
 
     pinMode(this->drivePins[address], INPUT);
-    pinMode(DRIVE_COMMON_PIN, INPUT);
+    pinMode(this->driveCommonPin, INPUT);
 
     // We consider a bit set if we got anything on the sense line.
     uint8_t result = 0;

@@ -3,8 +3,6 @@
 
 #include "Arduino.h"
 
-#define DRIVE_COMMON_PIN 7
-
 class RopeMemory
 {
 public:
