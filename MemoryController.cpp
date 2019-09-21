@@ -17,12 +17,30 @@ uint8_t MemoryController::read(uint8_t address)
         return this->ropeMemory->readNibble(2 * address) << 4 | this->ropeMemory->readNibble(1 + (2 * address));
     }
 
-    return EEPROM.read(address);
+    if (address <= 0x1F)
+    {
+        return EEPROM.read(address);
+    }
+
+    if (address <= 0x2F)
+    {
+        return this->ram[address - 0x20];
+    }
+
+    return 0;
 }
 
 void MemoryController::write(uint8_t address, uint8_t data)
 {
-    EEPROM.write(address, data);
+    if (address <= 0x1F)
+    {
+        EEPROM.write(address, data);
+    }
+
+    if (address <= 0x2F)
+    {
+        this->ram[address - 0x20] = data;
+    }
 }
 
 bool MemoryController::isRopeMemoryOK()
@@ -32,5 +50,5 @@ bool MemoryController::isRopeMemoryOK()
 
 void MemoryController::setRopeMemoryNOK()
 {
-    EEPROM.write(MEM_STATUS, EEPROM.read(MEM_STATUS) | 1);    
+    EEPROM.write(MEM_STATUS, EEPROM.read(MEM_STATUS) | 1);
 }

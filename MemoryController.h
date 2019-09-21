@@ -19,6 +19,7 @@ public:
 
 private:    
     RopeMemory *ropeMemory;
+    uint8_t ram[16];
 };
 
 #endif
