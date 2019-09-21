@@ -53,8 +53,12 @@ void Cli::loop()
     }
 }
 
-void Cli::printHexByte(uint8_t value)
+void Cli::printHexByte(uint8_t value, bool appendNewLine = false)
 {
     this->stream->print("0123456789ABCDEF"[value >> 4]);
     this->stream->print("0123456789ABCDEF"[value & 15]);
+
+    if(appendNewLine) {
+        this->stream->println("");
+    }
 }

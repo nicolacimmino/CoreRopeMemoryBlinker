@@ -29,6 +29,7 @@ CommandsProcessor commandProcessor;
 void onCommand(uint8_t argc, char **argv)
 {    
     commandProcessor.onCommand(argc, argv);
+    cli.stream->print(">");
 }
 
 void setup()
@@ -52,7 +53,7 @@ void loop()
 
     for (int address = 0; address < 4; address++)
     {
-        uint8_t value = memoryController.readMemory(address);
+        uint8_t value = memoryController.read(address);
 
         value32 = (value32 << 8) | value;
 
@@ -67,9 +68,9 @@ void loop()
     {
         digitalWrite(GREEN_LED_PIN, LOW);
         digitalWrite(RED_LED_PIN, HIGH);
-        EEPROM.write(MEM_STATUS, EEPROM.read(MEM_STATUS) | 1);
+        memoryController.write(MEM_STATUS, memoryController.read(MEM_STATUS) | 1);
 
-        while (EEPROM.read(MEM_STATUS) & 1 != 0)
+        while (memoryController.read(MEM_STATUS) & 1 != 0)
         {
             cli.loop();
         }

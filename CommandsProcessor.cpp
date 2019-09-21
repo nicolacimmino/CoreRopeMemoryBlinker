@@ -7,35 +7,34 @@ void CommandsProcessor::begin(Cli *cli, MemoryController *memoryController)
 }
 
 void CommandsProcessor::dumpMemoryCommand(uint8_t from, uint8_t to)
-{    
-    for (uint16_t address = from; address <= to; address++)
+{
+    for (uint16_t offset = 0; offset <= to - from; offset++)
     {
-        if ((address % 16) == 0)
+        if ((offset % 16) == 0)
         {
-            this->cli->printHexByte(address);
-            this->cli->stream->print(" - ");            
+            this->cli->printHexByte(from + offset);
+            this->cli->stream->print(" - ");
         }
 
-        this->cli->printHexByte(memoryController->readMemory(address));
+        this->cli->printHexByte(memoryController->read(from + offset));
 
-        this->cli->stream->print(((address % 16) == 15) ? "\n" : ".");
+        this->cli->stream->print(((offset % 16) == 15) ? "\n" : ".");
     }
     this->cli->stream->println("");
 }
 
 void CommandsProcessor::readMemoryCommand(uint8_t address)
 {
-    this->cli->printHexByte(memoryController->readMemory(address));
-    this->cli->stream->println("");
+    this->cli->printHexByte(memoryController->read(address), true);
 }
 
 void CommandsProcessor::writeMemoryCommand(uint8_t address, uint8_t data)
 {
-    memoryController->writeMemory(address, data);
+    memoryController->write(address, data);
 }
 
 void CommandsProcessor::onCommand(uint8_t argc, char **argv)
-{    
+{
     if (strcmp(argv[0], "exit") == 0)
     {
         this->cli->stream->println("bye");
@@ -61,9 +60,11 @@ void CommandsProcessor::onCommand(uint8_t argc, char **argv)
     }
 }
 
-uint8_t CommandsProcessor::argToByte(char *arg) {
-    if(arg[0] == '$') {
-        return strtol(arg+1, NULL, 16);
+uint8_t CommandsProcessor::argToByte(char *arg)
+{
+    if (arg[0] == '$')
+    {
+        return strtol(arg + 1, NULL, 16);
     }
 
     return atoi(arg);

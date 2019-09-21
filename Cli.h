@@ -12,9 +12,9 @@ class Cli
 public:
     void begin(Stream *stream, void (*onCommand)(uint8_t, char**));
     void loop();
-    void printHexByte(uint8_t value);
+    void printHexByte(uint8_t value, bool appendNewLine = false);
     Stream *stream;
-    
+
 private:    
     void (*onCommand)(uint8_t argc, char **argv);
     void parseCommand(String command);
