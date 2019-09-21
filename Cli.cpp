@@ -19,11 +19,12 @@ void Cli::initParser()
 
 void Cli::loop()
 {
-    if(this->promptNeeded) {
+    if (this->promptNeeded)
+    {
         this->printPrompt();
         return;
     }
-    
+
     while (this->stream->available())
     {
         this->inputBuffer[this->inputBufferIndex] = (char)this->stream->read();
@@ -74,8 +75,10 @@ void Cli::printPrompt()
     this->stream->print("RMERR:");
     this->stream->print(this->memoryController->isRopeMemoryOK() ? 0 : 1);
     this->stream->print(" RMON:");
-    this->stream->println(this->memoryController->isRopeMemoryOn() ? 1 : 0);
-    
+    this->stream->print(this->memoryController->isRopeMemoryOn() ? 1 : 0);
+    this->stream->print(" EEON:");
+    this->stream->println(this->memoryController->isEEPROMOn() ? 1 : 0);
+
     this->stream->print(">");
 
     this->promptNeeded = false;
@@ -96,6 +99,17 @@ void Cli::dumpMemoryCommand(uint8_t from, uint8_t to)
         this->stream->print(((offset % 16) == 15) ? "\n" : ".");
     }
     this->stream->println("");
+}
+
+void Cli::copyMemoryCommand(uint8_t from, uint8_t to, uint8_t destination)
+{
+    for (uint16_t offset = 0; offset <= to - from; offset++)
+    {
+        this->memoryController->write(destination + offset, this->memoryController->read(from + offset));
+    }
+    this->dumpMemoryCommand(from, to);
+    this->stream->println("=>");
+    this->dumpMemoryCommand(destination, destination + (to - from));
 }
 
 void Cli::readMemoryCommand(uint8_t address)
@@ -131,6 +145,12 @@ void Cli::onCommand(uint8_t argc, char **argv)
     if (strcmp(argv[0], "write") == 0 || strcmp(argv[0], "w") == 0)
     {
         this->writeMemoryCommand(this->argToByte(argv[1]), this->argToByte(argv[2]));
+        return;
+    }
+
+    if (strcmp(argv[0], "copy") == 0 || strcmp(argv[0], "c") == 0)
+    {
+        this->copyMemoryCommand(this->argToByte(argv[1]), this->argToByte(argv[2]), this->argToByte(argv[3]));
         return;
     }
 }
