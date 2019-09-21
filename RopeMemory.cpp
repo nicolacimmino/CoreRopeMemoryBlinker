@@ -1,5 +1,12 @@
 #include "RopeMemory.h"
 
+void RopeMemory::begin(uint8_t driveCommonPin, uint8_t *drivePins, uint8_t *sensePins)
+{
+    this->driveCommonPin = driveCommonPin;
+    this->drivePins = drivePins;
+    this->sensePins = sensePins;
+}
+
 uint8_t RopeMemory::readNibble(uint8_t address)
 {
     uint8_t values[] = {0, 0, 0, 0};

@@ -20,7 +20,7 @@ void Cli::initParser()
 void Cli::loop()
 {
     while (this->stream->available())
-    {         
+    {
         this->inputBuffer[this->inputBufferIndex] = (char)this->stream->read();
         this->stream->print(this->inputBuffer[this->inputBufferIndex]);
 
@@ -58,7 +58,13 @@ void Cli::printHexByte(uint8_t value, bool appendNewLine = false)
     this->stream->print("0123456789ABCDEF"[value >> 4]);
     this->stream->print("0123456789ABCDEF"[value & 15]);
 
-    if(appendNewLine) {
+    if (appendNewLine)
+    {
         this->stream->println("");
     }
+}
+
+void Cli::printPrompt()
+{
+    this->stream->print(">");
 }

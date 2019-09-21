@@ -10,12 +10,13 @@
 class MemoryController
 {
 public:
+    void begin(RopeMemory *ropeMemory);
     uint8_t read(uint8_t address);
     void write(uint8_t address, uint8_t data);
 
 private:
     bool isCoreRopeOn();
-    RopeMemory ropeMemory;
+    RopeMemory *ropeMemory;
 };
 
 #endif

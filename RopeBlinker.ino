@@ -15,36 +15,42 @@
 //    along with this program.  If not, see http://www.gnu.org/licenses/.
 //
 
-#define GREEN_LED_PIN 3
-#define RED_LED_PIN 12
-
+#include "Hardware.h"
 #include "Cli.h"
 #include "MemoryController.h"
 #include "CommandsProcessor.h"
 #include "LEDController.h"
+#include "RopeMemory.h"
 
 Cli cli;
 MemoryController memoryController;
 CommandsProcessor commandProcessor;
 LEDController ledController;
+RopeMemory ropeMemory;
+
+uint8_t drivePins[] = {PIN_DRIVE_0, PIN_DRIVE_1, PIN_DRIVE_2, PIN_DRIVE_3, PIN_DRIVE_4, PIN_DRIVE_5, PIN_DRIVE_6, PIN_DRIVE_7};
+uint8_t sensePins[] = {PIN_SENSE_0, PIN_SENSE_1, PIN_SENSE_2, PIN_SENSE_3};
 
 void onCommand(uint8_t argc, char **argv)
 {
     commandProcessor.onCommand(argc, argv);
-    cli.stream->print(">");
+    cli.printPrompt();
 }
 
 void setup()
 {
-    pinMode(RED_LED_PIN, OUTPUT);
-    pinMode(RED_LED_PIN, OUTPUT);
+    pinMode(PIN_RED_LED, OUTPUT);
+    pinMode(PIN_RED_LED, OUTPUT);
 
     Serial.begin(115200);
+
+    ropeMemory.begin(DRIVE_COMMON_PIN, drivePins, sensePins);
+    memoryController.begin(&ropeMemory);
 
     cli.begin(&Serial, onCommand);
     commandProcessor.begin(&cli, &memoryController);
 
-    ledController.begin(RED_LED_PIN, GREEN_LED_PIN);
+    ledController.begin(PIN_RED_LED, PIN_GREEN_LED);
 
     analogReference(INTERNAL);
 }

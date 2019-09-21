@@ -13,6 +13,7 @@ public:
     void begin(Stream *stream, void (*onCommand)(uint8_t, char**));
     void loop();
     void printHexByte(uint8_t value, bool appendNewLine = false);
+    void printPrompt();
     Stream *stream;
 
 private:    
