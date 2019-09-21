@@ -18,24 +18,16 @@
 #include "Hardware.h"
 #include "Cli.h"
 #include "MemoryController.h"
-#include "CommandsProcessor.h"
 #include "LEDController.h"
 #include "RopeMemory.h"
 
 Cli cli;
 MemoryController memoryController;
-CommandsProcessor commandProcessor;
 LEDController ledController;
 RopeMemory ropeMemory;
 
 uint8_t drivePins[] = {PIN_DRIVE_0, PIN_DRIVE_1, PIN_DRIVE_2, PIN_DRIVE_3, PIN_DRIVE_4, PIN_DRIVE_5, PIN_DRIVE_6, PIN_DRIVE_7};
 uint8_t sensePins[] = {PIN_SENSE_0, PIN_SENSE_1, PIN_SENSE_2, PIN_SENSE_3};
-
-void onCommand(uint8_t argc, char **argv)
-{
-    commandProcessor.onCommand(argc, argv);
-    cli.printPrompt();
-}
 
 void setup()
 {
@@ -47,8 +39,7 @@ void setup()
     ropeMemory.begin(PIN_COMMON_DRIVE, drivePins, sensePins);
     memoryController.begin(&ropeMemory);
 
-    cli.begin(&Serial, onCommand);
-    commandProcessor.begin(&cli, &memoryController);
+    cli.begin(&Serial, &memoryController);
 
     ledController.begin(PIN_RED_LED, PIN_GREEN_LED);
 
@@ -76,7 +67,7 @@ void loop()
     }
 
     if (value32 != 0xF05A4E43)
-    {        
-        memoryController.setRopeMemoryNOK();        
+    {
+        memoryController.setRopeMemoryNOK();
     }
 }

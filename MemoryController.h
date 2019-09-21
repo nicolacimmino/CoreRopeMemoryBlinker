@@ -15,9 +15,9 @@ public:
     void write(uint8_t address, uint8_t data);
     bool isRopeMemoryOK();
     void setRopeMemoryNOK();
+    bool isRopeMemoryOn();
 
-private:
-    bool isCoreRopeOn();
+private:    
     RopeMemory *ropeMemory;
 };
 
