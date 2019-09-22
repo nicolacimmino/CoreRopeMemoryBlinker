@@ -107,7 +107,7 @@ read [addr]
 ````
 write [addr] [value]
 
->r $3f $ff
+>w $3f $ff
 ````
 Note: writing to any location *always* writes also to the shadowed memory, regardless of memory configuration. So, for instance, writing to $00 will write in EEPROM and RAM, clearly not in the Core ROM as it's read only.
 
