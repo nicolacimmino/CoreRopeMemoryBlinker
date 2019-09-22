@@ -70,15 +70,15 @@ I was still left with the issue that a memory error would probably never occour,
 00-1F 	EEPROM (32 bytes, shadows RAM)
 00-04 	Core Rope Memory (4 bytes, shadows EEPROM and RAM)
 
-0A	    CONFIG
-		    bit7 (RMOFF) Core Rope ROM OFF
-		    bit6 (EEOFF) EEPROM OFF
+0A      CONFIG
+          bit7 (RMOFF) Core Rope ROM OFF
+          bit6 (EEOFF) EEPROM OFF
 
-0B	    STATUS
-		    bit0 (RMERR) Core Rope ROM read error
+0B      STATUS
+         bit0 (RMERR) Core Rope ROM read error
 
-0C	    LIGHTCTRL
-		    00-FF Light brightness
+0C      LIGHTCTRL
+          00-FF Light brightness
 ````
 
 ## Notes ##
