@@ -46,13 +46,40 @@ I wasn't satisfied with just the bare PCB sitting on my desk breathing and, afte
 Firstly I added a RGB LED strip and enclosed the board in a wooden box with a grate laser-cut on the cover. The effect was reasonably pleasant but I wasn't fully satisfied till I hid the most modern bit (the Arduino) with a steampunked plate with couple of cogs and an EEPROM which, needless to say, is not part of the circuitry. I finally sprinkled a good amount of acrylic crystals over the electronics which improved the visual effect considerably. Finally I changed the solid red for the memory reading error to an animation simulation fire flickering.
 
 ![inside](docs/inside.png)
+
 The inside of the box.
 
 ![gems](docs/gems.png)
+
 The acrylic gems glowing in emerald green.
 
 ![onfire](docs/onfire.png)
+
 On fire.
+
+![breathing](docs/breathing.png)
+
+Calmly breathing in normal opeation.
+
+## The final iteration (?) ##
+
+I was still left with the issue that a memory error would probably never occour, unless I did externally apply a magnet so strong to saturate one or more of the cores. Wanting to do something else to the device I added a CLI interface, via serial port, to it and implemented a crude set of commands to manipulate memory. I memory mapped some of the parts such as the LED Controller and elected some special EEPROM (Arduino EEPROM, not the one glued to the plate for shows) memory locations to act as control registers to bank in/out the rope ROM itself, the EEPROM and a bit of RAM. I am coming up with new things to memory map from time to time, the current memory looks like in the table below.
+
+````
+00-2F 	RAM (48 bytes)
+00-1F 	EEPROM (32 bytes, shadows RAM)
+00-04 	Core Rope Memory (4 bytes, shadows EEPROM and RAM)
+
+0A	    CONFIG
+		    bit7 (RMOFF) Core Rope ROM OFF
+		    bit6 (EEOFF) EEPROM OFF
+
+0B	    STATUS
+		    bit0 (RMERR) Core Rope ROM read error
+
+0C	    LIGHTCTRL
+		    00-FF Light brightness
+````
 
 ## Notes ##
 
