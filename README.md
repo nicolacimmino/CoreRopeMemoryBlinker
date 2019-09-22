@@ -39,6 +39,21 @@ The video shows the light breathing away and, given I haven't had reading errors
 
 [![video](docs/video.png)](https://www.youtube.com/watch?v=8H_4KBkwSY4)
 
+## A more permanent installation ##
+
+I wasn't satisfied with just the bare PCB sitting on my desk breathing and, after a good week of uninterrupted test, I began to suspect I would never see a reading error anyway so I decided to over-engineer a bit the whole idea.
+
+Firstly I added a RGB LED strip and enclosed the board in a wooden box with a grate laser-cut on the cover. The effect was reasonably pleasant but I wasn't fully satisfied till I hid the most modern bit (the Arduino) with a steampunked plate with couple of cogs and an EEPROM which, needless to say, is not part of the circuitry. I finally sprinkled a good amount of acrylic crystals over the electronics which improved the visual effect considerably. Finally I changed the solid red for the memory reading error to an animation simulation fire flickering.
+
+![inside](docs/inside.png)
+The inside of the box.
+
+![gems](docs/gems.png)
+The acrylic gems glowing in emerald green.
+
+![onfire](docs/onfire.png)
+On fire.
+
 ## Notes ##
 
 I haven't produced a full schematic, however the code should make it self explanatory where things are connected. The sense coils are 10 windings which seems to work fine at least for the ferrite type I'm using. The outputs of the 4 peak detectors go to pins A1-A3 while the driving lines are all wired from D7 on one side to pins D2, D4, D5, D6, D8, D9, D10, D11. Pardon the odd arrangement, I needed D3 for the LED as D2 can't PWM on the Nano and I was too lazy to shuffle all the other wiring around.
