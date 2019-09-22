@@ -81,6 +81,36 @@ I was still left with the issue that a memory error would probably never occour,
           00-FF Light brightness
 ````
 
+**Dump memory content**
+
+````
+dump [from] [to]
+
+>d 0 $3f
+00 - F0.5A.4E.43.FF.FF.FF.FF.FF.FF.00.00.FF.FF.FF.FF
+10 - FF.FF.FF.FF.FA.FF.FF.FF.FF.FF.FF.FF.FF.FF.FF.FF
+20 - 00.00.00.00.00.00.00.00.00.00.00.00.00.00.00.00
+30 - 00.00.00.00.00.00.00.00.00.00.00.00.00.00.00.00
+
+````
+
+**Read memory content**
+
+````
+read [addr] 
+
+>r $3f
+00
+````
+**Write to memory**
+
+````
+write [addr] [value]
+
+>r $3f $ff
+````
+Note: writing to any location *always* writes also to the shadowed memory, regardless of memory configuration. So, for instance, writing to $00 will write in EEPROM and RAM, clearly not in the Core ROM as it's read only.
+
 ## Notes ##
 
 I haven't produced a full schematic, however the code should make it self explanatory where things are connected. The sense coils are 10 windings which seems to work fine at least for the ferrite type I'm using. The outputs of the 4 peak detectors go to pins A1-A3 while the driving lines are all wired from D7 on one side to pins D2, D4, D5, D6, D8, D9, D10, D11. Pardon the odd arrangement, I needed D3 for the LED as D2 can't PWM on the Nano and I was too lazy to shuffle all the other wiring around.
