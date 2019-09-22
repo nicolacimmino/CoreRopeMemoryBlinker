@@ -41,7 +41,7 @@ void setup()
 
     cli.begin(&Serial, &memoryController);
 
-    ledController.begin(PIN_RED_LED, PIN_GREEN_LED);
+    ledController.begin(PIN_RED_LED, PIN_GREEN_LED, &memoryController);
 
     analogReference(INTERNAL);
 }
