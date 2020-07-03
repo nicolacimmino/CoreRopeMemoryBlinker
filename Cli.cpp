@@ -6,6 +6,7 @@ void Cli::begin(Stream *stream, MemoryController *memoryController)
     this->memoryController = memoryController;
 
     this->initParser();
+    this->printStatusBar();
 }
 
 void Cli::initParser()
@@ -51,6 +52,7 @@ void Cli::loop()
         this->inputBuffer[this->inputBufferIndex - 1] = 0;
 
         this->stream->println("");
+        this->stream->println("");
         this->argc++;
 
         this->onCommand(this->argc, this->argv);
@@ -72,6 +74,7 @@ void Cli::printHexByte(uint8_t value, bool appendNewLine = false)
 
 void Cli::printPrompt()
 {
+    VT100.setCursor(12, 2);
     this->stream->print("RMERR:");
     this->stream->print(this->memoryController->isRopeMemoryOK() ? 0 : 1);
     this->stream->print(" RMON:");
@@ -79,37 +82,31 @@ void Cli::printPrompt()
     this->stream->print(" EEON:");
     this->stream->println(this->memoryController->isEEPROMOn() ? 1 : 0);
 
-    this->stream->print(">");
+    this->stream->print(" >");
+    VT100.clearLineAfter();
+    VT100.setCursor(13, 3);
 
     this->promptNeeded = false;
 }
 
 void Cli::dumpMemoryCommand(uint8_t from, uint8_t to)
 {
+    from = min(from, 64);
+    to = min(to, 64);
+
     for (uint16_t offset = 0; offset <= to - from; offset++)
     {
         if ((offset % 16) == 0)
         {
+            this->stream->print(" ");
             this->printHexByte(from + offset);
             this->stream->print(" - ");
         }
 
         this->printHexByte(memoryController->read(from + offset));
 
-        this->stream->print(((offset % 16) == 15) ? "\n" : ".");
+        this->stream->print(((offset % 16) == 15) ? "\r\n" : ".");
     }
-    this->stream->println("");
-}
-
-void Cli::copyMemoryCommand(uint8_t from, uint8_t to, uint8_t destination)
-{
-    for (uint16_t offset = 0; offset <= to - from; offset++)
-    {
-        this->memoryController->write(destination + offset, this->memoryController->read(from + offset));
-    }
-    this->dumpMemoryCommand(from, to);
-    this->stream->println("=>");
-    this->dumpMemoryCommand(destination, destination + (to - from));
 }
 
 void Cli::readMemoryCommand(uint8_t address)
@@ -124,11 +121,11 @@ void Cli::writeMemoryCommand(uint8_t address, uint8_t data)
 
 void Cli::onCommand(uint8_t argc, char **argv)
 {
-    if (strcmp(argv[0], "exit") == 0)
-    {
-        this->stream->println("bye");
-        return;
+    for(uint8_t line=13; line < 20; line++) {
+        VT100.setCursor(line, 1);
+        VT100.clearLineAfter();
     }
+    VT100.setCursor(15, 1);
 
     if (strcmp(argv[0], "dump") == 0 || strcmp(argv[0], "d") == 0)
     {
@@ -146,13 +143,7 @@ void Cli::onCommand(uint8_t argc, char **argv)
     {
         this->writeMemoryCommand(this->argToByte(argv[1]), this->argToByte(argv[2]));
         return;
-    }
-
-    if (strcmp(argv[0], "copy") == 0 || strcmp(argv[0], "c") == 0)
-    {
-        this->copyMemoryCommand(this->argToByte(argv[1]), this->argToByte(argv[2]), this->argToByte(argv[3]));
-        return;
-    }
+    }    
 }
 
 uint8_t Cli::argToByte(char *arg)
@@ -163,4 +154,26 @@ uint8_t Cli::argToByte(char *arg)
     }
 
     return atoi(arg);
+}
+
+void Cli::printStatusBar()
+{
+    VT100.setBackgroundColor(VT_BLACK);
+    VT100.clearScreen();
+
+    VT100.setCursor(2, 1);
+    printMessage(0);
+
+    VT100.setCursor(1, 1);
+    VT100.setBackgroundColor(VT_YELLOW);
+    VT100.setTextColor(VT_BLACK);
+    Serial.print(" CoreRopeMemory V1.0 ");
+
+    VT100.clearLineAfter();
+    VT100.setCursor(1, TERMINAL_WIDTH + 1);
+    VT100.setBackgroundColor(VT_BLACK);
+    VT100.setTextColor(VT_WHITE);
+    VT100.clearLineAfter();
+
+    VT100.cursorOn();
 }

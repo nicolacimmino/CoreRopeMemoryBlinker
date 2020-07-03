@@ -36,6 +36,8 @@ void setup()
 
     Serial.begin(115200);
 
+    VT100.begin(Serial);
+
     ropeMemory.begin(PIN_COMMON_DRIVE, drivePins, sensePins);
     memoryController.begin(&ropeMemory);
 
@@ -45,6 +47,8 @@ void setup()
 
     analogReference(INTERNAL);
 }
+
+
 
 void loop()
 {

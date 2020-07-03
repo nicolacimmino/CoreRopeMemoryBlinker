@@ -7,6 +7,10 @@
 
 #include "Arduino.h"
 #include "MemoryController.h"
+#include "VT100.h"
+#include "messages.h"
+
+#define TERMINAL_WIDTH 80
 
 class Cli
 {
@@ -31,7 +35,8 @@ private:
     void printPrompt();
     void printHexByte(uint8_t value, bool appendNewLine = false);
     uint8_t argToByte(char *arg);
-    bool promptNeeded = false;
+    bool promptNeeded = true;
+    void printStatusBar();    
 };
 
 #endif
